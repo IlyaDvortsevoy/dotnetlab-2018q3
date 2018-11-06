@@ -24,15 +24,12 @@ namespace EF_Task
 
             Console.WriteLine("Main Async Completed");
         }
-
-
-        //TODO: Grab all tables data in a 1 SQL query.
-        //TODO: Use eager loading with nested LINQ Select queries to achieve that.
-        //TODO: Use SQL Profiler to ensure that only 1 query has been executed. 
-        //TODO: SQL Query result (can be checked via SQL management studio) must looks like denormalized data from initial "Internation widgets.xlsx" file 
+      
         static async Task Process(AppDbContext context)
         {
-
+            var result = context.Customers
+                .Include(c => c.COrders)
+                .Include(c => c.COrders.Select(o => o.OOrderItems));
         }
     }
 }

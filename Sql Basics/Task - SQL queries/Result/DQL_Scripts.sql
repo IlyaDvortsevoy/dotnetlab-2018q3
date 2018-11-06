@@ -1,3 +1,5 @@
+USE Northwind;
+
 --Task1
 SELECT O.CustomerID, SUM(OD.UnitPrice * OD.Quantity * (1 - OD.Discount)) AS OrderSum
 FROM Customers AS C
@@ -79,5 +81,3 @@ ON C.CategoryID = P.CategoryID
 GROUP BY C.CategoryName, CASE	WHEN P.UnitsInStock > 0 Then 'True'
 								WHEN P.UnitsInStock = 0 Then 'False' END
 ORDER BY TotalSum;
-
---Task8

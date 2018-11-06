@@ -19,8 +19,6 @@ namespace DAL.Context
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            //TODO: setup dbcontext configuration based on "InternationWidgets.mdf" file using EF Fluent API. DO NOT modify any files from "Entities" folder.
-
             modelBuilder.Entity<Customer>()
                 .ToTable("customers")
                 .HasKey(c => c.CId);
@@ -54,17 +52,19 @@ namespace DAL.Context
                 .HasColumnName("customer_state")
                 .IsOptional();
 
-
+            modelBuilder.Entity<Customer>()
+                .HasMany<Order>(c => c.COrders)
+                .WithRequired(o => o.OCustomer)
+                .Map(o => o.MapKey("customer_id"))
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<Order>()
                 .ToTable("orders")
-                .HasKey(o => o.OId)
-                .HasRequired<Customer>(o => o.OCustomer)
-                .WithMany(c => c.COrders)
-                .Map(m => m.MapKey("fk"));
+                .HasKey(o => o.OId);
 
             modelBuilder.Entity<Order>()
                 .Property(o => o.OId)
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity)
                 .HasColumnName("order_id");
 
             modelBuilder.Entity<Order>()
@@ -74,9 +74,10 @@ namespace DAL.Context
                 .IsRequired();
 
             modelBuilder.Entity<Order>()
-                .Property(o => o.OCustomer)
-                .HasColumnType("int")
-                .HasColumnName("customer_id");
+                .HasMany<OrderItem>(o => o.OOrderItems)
+                .WithRequired(oi => oi.OIOrder)
+                .HasForeignKey(oi => oi.OIOrderId)
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<Item>()
                 .ToTable("items")
@@ -94,19 +95,32 @@ namespace DAL.Context
 
             modelBuilder.Entity<Item>()
                 .Property(i => i.IPrice)
-                .HasColumnType("decimal(18, 2)")
+                .HasColumnType("decimal")
                 .HasColumnName("item_price")
                 .IsRequired();
 
-            modelBuilder.Entity<OrderItem>()
-                .HasRequired<Order>(oi => oi.OIOrder)
-                .WithMany(o => o.OOrderItems)
-                .HasForeignKey<int>(oi => oi.OIOrderId);
+            modelBuilder.Entity<Item>()
+                .HasMany<OrderItem>(i => i.IOrderItems)
+                .WithRequired(oi => oi.OIItem)
+                .HasForeignKey(oi => oi.OIItemId)
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<OrderItem>()
-                .HasRequired<Item>(oi => oi.OIItem)
-                .WithMany(i => i.IOrderItems)
-                .HasForeignKey<int>(oi => oi.OIItemId);
+                .ToTable("order_items")
+                .HasKey(oi => new {oi.OIOrderId, oi.OIItemId});
+
+            modelBuilder.Entity<OrderItem>()
+                .Property(oi => oi.OIOrderId)
+                .HasColumnName("order_id");
+
+            modelBuilder.Entity<OrderItem>()
+                .Property(oi => oi.OIItemId)
+                .HasColumnName("item_id");
+
+            modelBuilder.Entity<OrderItem>()
+                .Property(oi => oi.OIQuantity)
+                .HasColumnType("int")
+                .HasColumnName("item_qty");
 
             modelBuilder.Configurations.AddFromAssembly(Assembly.GetExecutingAssembly());
 
