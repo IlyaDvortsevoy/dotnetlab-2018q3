@@ -67,10 +67,31 @@ namespace DAL.Context
                 .HasColumnName("customer_id");
 
 
-                
-                
+            modelBuilder.Entity<Item>()
+                .ToTable("items")
+                .HasKey(i => i.IId);
+            modelBuilder.Entity<Item>()
+                .Property(i => i.IId)
+                .HasColumnName("item_id");
+            modelBuilder.Entity<Item>()
+                .Property(i => i.IDescription)
+                .HasColumnType("nvarchar(MAX)")
+                .HasColumnName("item_description")
+                .IsOptional();
+            modelBuilder.Entity<Item>()
+                .Property(i => i.IPrice)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("item_price")
+                .IsRequired();
 
-
+            modelBuilder.Entity<OrderItem>()
+                .HasRequired<Order>(oi => oi.OIOrder)
+                .WithMany(o => o.OOrderItems)
+                .HasForeignKey<int>(oi => oi.OIOrderId);
+            modelBuilder.Entity<OrderItem>()
+                .HasRequired<Item>(oi => oi.OIItem)
+                .WithMany(i => i.IOrderItems)
+                .HasForeignKey<int>(oi => oi.OIItemId);
 
 
             modelBuilder.Configurations.AddFromAssembly(Assembly.GetExecutingAssembly());
