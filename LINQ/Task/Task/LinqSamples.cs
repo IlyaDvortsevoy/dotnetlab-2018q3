@@ -189,16 +189,70 @@ namespace SampleQueries
 
 	        var customers =
 	            from customer in dataSource.Customers
-                let validPostalCode = regex.IsMatch(customer.PostalCode)
-                where validPostalCode == false ||
-                      customer.Region == null ||
-                      customer?.Phone[0] != '('
-                select new { Company = customer.CompanyName };
+	            let validPostalCode = customer.PostalCode != null && regex.IsMatch(customer.PostalCode)
+	            where validPostalCode == false ||
+	                  customer.Region == null ||
+	                  customer?.Phone[0] != '('
+	            select new
+	            {
+	                Company = customer.CompanyName,
+                    Region = customer.Region,
+                    PostalCode = customer.PostalCode,
+                    Phone = customer.Phone
+	            };
 
 	        foreach (var customer in customers)
 	        {
 	            ObjectDumper.Write(customer);
 	        }
+        }
+
+	    [Category("LINQ Module Tasks")]
+	    [Title("Task 7")]
+	    [Description("This sample groups all products by category, inside - by stock, within the last group sort by cost.")]
+	    public void Linq8()
+	    {
+	        var products =
+	            from product in dataSource.Products
+	            group product by product.Category into categoryGroup
+                select new
+                {
+                    Category = categoryGroup.Key,
+                    Products =
+                        from product in categoryGroup
+                        group product by product.UnitsInStock > 0 into inStock
+                        select new
+                        {
+                            Status = inStock.Key,
+                            Product =
+                                from product in inStock
+                                orderby product.UnitPrice
+                                select new { Product = product.ProductName, Count = product.UnitsInStock, Price = product.UnitPrice }
+                        }
+                };
+
+            foreach (var item in products)
+            {
+                ObjectDumper.Write($"---{item.Category}");
+                Console.WriteLine();
+
+                foreach (var entity in item.Products)
+                {
+                    string status = entity.Status ? "_InStock" : "_NotInStock";
+
+                    ObjectDumper.Write(status);
+                    Console.WriteLine();
+
+                    foreach (var product in entity.Product)
+                    {
+                        ObjectDumper.Write(product);
+                    }
+
+                    Console.WriteLine();
+                }
+
+                Console.WriteLine();
+            }
 	    }
     }
 }
