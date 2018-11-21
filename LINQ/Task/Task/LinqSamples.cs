@@ -254,5 +254,82 @@ namespace SampleQueries
                 Console.WriteLine();
             }
 	    }
+
+	    [Category("LINQ Module Tasks")]
+	    [Title("Task 8")]
+	    [Description("This sample groups the goods into groups \"cheap\", \"average price\", \"expensive\".")]
+	    public void Linq9()
+	    {
+	        decimal cheap = 50M;
+	        decimal average = 200M;
+
+	        var cheapProducts = dataSource.Products.Where(product => product.UnitPrice <= cheap)
+	            .Select(product => new
+	            {
+	                Name = product.ProductName,
+	                PriceCategory = "Cheap",
+	                Price = product.UnitPrice
+	            });
+
+	        var averageProducts = dataSource.Products.Where(product => product.UnitPrice > cheap && product.UnitPrice <= average)
+	            .Select(product => new
+	            {
+	                Name = product.ProductName,
+	                PriceCategory = "Average",
+	                Price = product.UnitPrice
+	            });
+
+	        var expensiveProducts = dataSource.Products.Where(product => product.UnitPrice > average)
+	            .Select(product => new
+	            {
+	                Name = product.ProductName,
+	                PriceCategory = "Expensive",
+	                Price = product.UnitPrice
+	            });
+
+	        var allProducts = cheapProducts.Union(averageProducts).Union(expensiveProducts)
+	            .OrderBy(product => product.Price)
+	            .GroupBy(product => product.PriceCategory);
+
+            foreach (var group in allProducts)
+            {
+                ObjectDumper.Write($"---{group.Key}");
+                Console.WriteLine();
+
+                foreach (var product in group)
+                {
+                    ObjectDumper.Write(product);
+                }
+
+                Console.WriteLine();
+            }
+        }
+
+	    [Category("LINQ Module Tasks")]
+	    [Title("Task 9")]
+	    [Description("This sample calculates the average profitability of each city (the average amount of the order for all customers from a given city) and the average intensity (the average number of orders per customer from each city).")]
+        public void Linq10()
+	    {
+	        var cities = dataSource.Customers.GroupBy(customer => customer.City)
+	            .Select(city => new
+	            {
+                    City = city.Key,
+	                Profitability = city.SelectMany(customer => customer.Orders)
+	                    .Average(order => order.Total),
+	                Intensity = city.SelectMany(customer => customer.Orders).Count() /
+	                            city.Select(customer => customer).Count()
+                });
+	            
+
+	        foreach (var city in cities)
+	        {
+	            ObjectDumper.Write($"---{city.City}");
+	            ObjectDumper.Write($"Profitability = {city.Profitability}");
+	            ObjectDumper.Write($"Intensity = {city.Intensity}");
+                Console.WriteLine();
+	        }
+	    }
+
+
     }
 }
